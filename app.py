@@ -14,6 +14,7 @@ import cv2
 import tensorflow as tf
 from tensorflow.keras.applications.inception_v3 import InceptionV3, preprocess_input, decode_predictions
 from flask import Flask, request, jsonify
+import pandas as pd
 
 # Initialize the pre-trained Inception V3 model
 model = InceptionV3(weights='imagenet')
@@ -74,9 +75,12 @@ def index():
                 frame_results.append({'label': pred[1], 'probability': float(pred[2])})
             results.append(frame_results)
         data = jsonify(results)
-        data_path =  os.path.join(app.static_folder, 'static/files/json')
-        with open(data_path, 'w') as f:
-            json.dump(data, f)
+        # data_path =  os.path.join(app.static_folder, 'files','json')
+        # with open(data_path, 'w') as f:
+        #     json.dump(data, f)
+        # results.to_csv(f"static/files/json/{file.filename}", header=True)
+        df = pd.DataFrame(results)
+        df.to_json(f"static/files/json/{file.filename}.json", orient="records")
         return redirect(url_for('objects', name = file.filename ))
     else:
         return render_template('index.html')
@@ -88,7 +92,9 @@ def members():
 @app.route('/objects',methods=['POST', 'GET'])
 def objects():
     object_name = request.args.get('name')
-    return render_template('objects.html', object_name = object_name)
+    with open(f'static/files/json/{object_name}.json', 'r') as f:
+        data = json.load(f)
+    return render_template('objects.html', object_name = object_name, data = data)
 
 if(__name__ == "__main__"):
     app.run(debug = True)
