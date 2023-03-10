@@ -21,12 +21,11 @@ model = InceptionV3(weights='imagenet')
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'mykey'
 app.config['UPLOAD_FOLDER'] = 'static/files'
-app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 16
+app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5MB
 
-
-class UploadFileForm(FlaskForm):
-    file = FileField('File',  validators=[InputRequired(), FileAllowed(['mp4'], 'Videos only!'), FileSize(max_size=5000000)])
-    submit = SubmitField('Upload File')
+# class UploadFileForm(FlaskForm):
+#     file = FileField('File',  validators=[InputRequired(), FileAllowed(['mp4'], 'Videos only!'), FileSize(max_size=5000000)])
+#     submit = SubmitField('Upload File')
 
 @app.errorhandler(413)
 def request_entity_too_large(error):
@@ -74,7 +73,9 @@ def index():
             for pred in preds:
                 frame_results.append({'label': pred[1], 'probability': float(pred[2])})
             results.append(frame_results)
-        return redirect('/objects')
+            # objects = jsonify(results)
+
+        return redirect(url_for('objects', objects = jsonify(results)))
     else:
         return render_template('index.html')
 
@@ -84,7 +85,8 @@ def members():
 
 @app.route('/objects',methods=['POST', 'GET'])
 def objects():
-    return render_template('objects.html')
+    objects = request.args.get('objects')
+    return render_template('objects.html', objects = objects)
 
 if(__name__ == "__main__"):
     app.run(debug = True)
