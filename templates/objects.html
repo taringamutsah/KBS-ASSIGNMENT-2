@@ -7,5 +7,40 @@
 
 
 {% block body %}
-<p style="margin-top: 100px;">{{ object_name }}</p>
+<div style="margin-top: 100px;">
+    <div class="object-head" style="margin-bottom: 20px;">
+        <h1>Objects Obtained</h1>
+        <div >
+            <form  method="POST">
+                <input hidden type="text" name="{{ object_name }}" id="object">
+                <input type="text" name="object" id="object">
+                <input type="submit" value="Search Object">
+            </form>
+        </div>
+        
+    </div>
+    <div class="row">
+        {% for item in data %}
+        <div class="col-md-3" style="margin-top: 3px;">
+            <div class="object">
+                <p>Object: {{ item['0']['label']}}</p>
+                <p>Probability: {{ item['0']['probability']}}</p>
+            </div>
+        </div>
+        <div class="col-md-3" style="margin-top: 3px;">
+            <div class="object">
+                <p>Object: {{ item['1']['label']}}</p>
+                <p>Probability: {{ item['1']['probability']}}</p>
+            </div>
+        </div>
+        <div class="col-md-3" style="margin-top: 3px;">
+            <div class="object">
+                <p>Object: {{ item['2']['label']}}</p>
+                <p>Probability: {{ item['2']['probability']}}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <!-- <p class="my-5" >{{ data }}</p> -->
+</div>
 {% endblock %}
