@@ -42,9 +42,9 @@ def index():
         filename = file.filename
 
         #save the video in local file
-        file.save('static/files/' + filename)
+        file.save('static/files/videos/' + filename)
         video = file.read()
-        path = f'static/files/{file.filename}'
+        path = f'static/files/videos/{file.filename}'
 
         # Split the video into frames
         cap = cv2.VideoCapture(path)
@@ -73,9 +73,11 @@ def index():
             for pred in preds:
                 frame_results.append({'label': pred[1], 'probability': float(pred[2])})
             results.append(frame_results)
-            # objects = jsonify(results)
-
-        return redirect(url_for('objects', objects = jsonify(results)))
+        data = jsonify(results)
+        data_path =  os.path.join(app.static_folder, 'static/files/json')
+        with open(data_path, 'w') as f:
+            json.dump(data, f)
+        return redirect(url_for('objects', name = file.filename ))
     else:
         return render_template('index.html')
 
@@ -85,8 +87,8 @@ def members():
 
 @app.route('/objects',methods=['POST', 'GET'])
 def objects():
-    objects = request.args.get('objects')
-    return render_template('objects.html', objects = objects)
+    object_name = request.args.get('name')
+    return render_template('objects.html', object_name = object_name)
 
 if(__name__ == "__main__"):
     app.run(debug = True)
