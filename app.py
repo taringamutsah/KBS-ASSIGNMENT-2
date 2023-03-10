@@ -94,7 +94,7 @@ def objects():
     object_name = request.args.get('name')
     with open(f'static/files/json/{object_name}.json', 'r') as f:
         data = json.load(f)
-    return render_template('objects.html', object_name = object_name, data = data)
+    return render_template('objects.html', object_name = object_name, data = dta)
 
 if(__name__ == "__main__"):
     app.run(debug = True)
