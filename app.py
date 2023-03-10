@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, url_for, redirect, jsonify
+from flask import Flask, render_template, request, url_for, redirect, jsonify,flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from datetime import datetime
@@ -21,25 +21,70 @@ model = InceptionV3(weights='imagenet')
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'mykey'
 app.config['UPLOAD_FOLDER'] = 'static/files'
+app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 16
 
 
 class UploadFileForm(FlaskForm):
     file = FileField('File',  validators=[InputRequired(), FileAllowed(['mp4'], 'Videos only!'), FileSize(max_size=5000000)])
     submit = SubmitField('Upload File')
 
+@app.errorhandler(413)
+def request_entity_too_large(error):
+    flash('File size exceeds 5 MB limit.')
+    return redirect('/')
+
 @app.route('/', methods=['POST', 'GET'])
 def index():
 
     if request.method == 'POST':
-        form = UploadFileForm()
-        if form.validate_on_submit():
-            file = form.file.data # grab the file
-            file.save(os.path.join(os.path.abspath(os.path.dirname(__file__)), app.config['UPLOAD_FOLDER'], secure_filename(file.filename)))
-            return redirect('/')
-            # return f"File hase been uploaded"
-    else:
-        return render_template('index.html', form = form)
+     
+        # Extract the video from the request
+        file = request.files['video']
+        filename = file.filename
 
+        #save the video in local file
+        file.save('static/files/' + filename)
+        video = file.read()
+        path = f'static/files/{file.filename}'
+
+        # Split the video into frames
+        cap = cv2.VideoCapture(path)
+        frames = []
+        while cap.isOpened():
+            ret, frame = cap.read()
+            if not ret:
+                break
+            frames.append(frame)
+        cap.release()
+
+        # Feed the frames into the Inception V3 model to detect objects
+        results = []
+        for frame in frames:
+            # Preprocess the frame for the Inception V3 model
+            img = cv2.resize(frame, (299, 299))
+            img = preprocess_input(img)
+            img = tf.expand_dims(img, axis=0)
+
+            # Feed the frame into the Inception V3 model to detect objects
+            preds = model.predict(img)
+            preds = decode_predictions(preds, top=3)[0]
+
+            # Save the output of the model for each frame
+            frame_results = []
+            for pred in preds:
+                frame_results.append({'label': pred[1], 'probability': float(pred[2])})
+            results.append(frame_results)
+        return redirect('/objects')
+    else:
+        return render_template('index.html')
+
+@app.route('/members')
+def members():
+    return render_template('members.html')
+
+@app.route('/objects',methods=['POST', 'GET'])
+def objects():
+    return render_template('objects.html')
 
 if(__name__ == "__main__"):
     app.run(debug = True)
