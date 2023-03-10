@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -7,11 +7,35 @@
     <title>KBS</title>
 </head>
 <body>
-    <h1>Upload File</h1>
-    <form action="" method="POST" enctype="multipart/form-data">
-        {{form.hidden_tag()}}
-        {{form.file}}
-        {{form.submit}}
-    </form>
+   
 </body>
-</html>
+</html> -->
+
+{% extends 'base.html' %}
+
+
+{% block head %}
+<title>KBS ASSIGNMENT 2</title>
+{% endblock %}
+
+
+{% block body %}
+
+    <div  style="margin-top: 100px;">
+        <h1>Upload Video</h1>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul class="flashes">
+            {% for message in messages %}
+            <li>{{ message }}</li>
+            {% endfor %}
+            </ul>
+        {% endif %}
+        {% endwith %}
+        <form action="/" method="POST" enctype="multipart/form-data">
+            <input type="file" name="video">
+            <input type="submit" value="Upload">
+        </form>
+    </div>
+    
+{% endblock %}
